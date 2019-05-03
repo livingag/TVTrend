@@ -1,160 +1,152 @@
-<html lang="en">
-    <head>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
-        <style type="text/css">
-            body > .ui.container {
-                margin-top: 3em;
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+<style type="text/css">
+    @media only screen and (min-width: 1200px){
+        .ui.container {
+            width: 1175px;
+        }
+
+        .ui.grid.container {
+            width: calc( 1175px  +  2rem ) !important;
+        }
+
+        .ui.relaxed.grid.container {
+            width: calc( 1175px  +  3rem ) !important;
+        }
+
+        .ui.very.relaxed.grid.container {
+            width: calc( 1175px  +  5rem ) !important;
+        }
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ui container">
+<canvas id="canvas"></canvas>
+</div>
+<script type="text/javascript">
+    var color = Chart.helpers.color;
+    var colors = [
+        '#4878CF',
+        '#EE854A',
+        '#6ACC64',
+        '#D65F5F',
+        '#B47CC7',
+        '#C4AD66',
+        '#77BEDB'
+    ];
+    window.onload = function () {
+        Chart.defaults.global.defaultFontColor='#f5f5f5';
+        chartDataSets = [];
+        var colorInd = 0;
+        var epNo = 1;
+        var fitNo = 1;
+        var epNames = {{ epNames|tojson|safe }};
+        var ctx = document.getElementById('canvas').getContext('2d');
+        {% for season in ratings %}
+            var chartData = [];
+            var fitData = [];
+            {% for r in season %}
+                chartData.push({
+                    x: epNo,
+                    y: {{ r }}
+                });
+                epNo++
+            {% endfor %}
+            {% for f in fits[loop.index0] %}
+                fitData.push({
+                    x: fitNo,
+                    y: {{ f }}
+                });
+                fitNo++
+            {% endfor %}
+            chartDataSets.push({
+                label: '',
+                borderColor: colors[colorInd],
+                backgroundColor: colors[colorInd],
+                pointRadius: 3,
+                data: chartData,
+            })
+            chartDataSets.push({
+                label: '',
+                borderColor: colors[colorInd],
+                backgroundColor: color(colors[colorInd]).alpha(0.2).rgbString(),
+                showLine: true,
+                fill: false,
+                borderWidth: 1,
+                pointRadius: 0,
+                data: fitData,
+            })
+            colorInd++
+            if (colorInd >= colors.length) {
+                colorInd = 0;
             }
-            body {
-                color: whitesmoke;
-                background-color: #303030;
-            }
-            @media only screen and (min-width: 1200px){
-                .ui.container {
-                  width: 1175px;
-                }
-
-                .ui.grid.container {
-                  width: calc( 1175px  +  2rem ) !important;
-                }
-
-                .ui.relaxed.grid.container {
-                  width: calc( 1175px  +  3rem ) !important;
-                }
-
-                .ui.very.relaxed.grid.container {
-                  width: calc( 1175px  +  5rem ) !important;
-                }
-              }
-        </style>
-    </head>
-    <body>
-        <div class="ui container">
-        <canvas id="canvas"></canvas>
-        </div>
-        <script type="text/javascript">
-            var color = Chart.helpers.color;
-            var colors = [
-                '#4878CF',
-                '#EE854A',
-                '#6ACC64',
-                '#D65F5F',
-                '#B47CC7',
-                '#C4AD66',
-                '#77BEDB'
-            ];
-            window.onload = function () {
-                Chart.defaults.global.defaultFontColor='#f5f5f5';
-                chartDataSets = [];
-                var colorInd = 0;
-                var epNo = 1;
-                var fitNo = 1;
-                var epNames = {{ epNames|tojson|safe }};
-                var ctx = document.getElementById('canvas').getContext('2d');
-                {% for season in ratings %}
-                    var chartData = [];
-                    var fitData = [];
-                    {% for r in season %}
-                        chartData.push({
-                            x: epNo,
-                            y: {{ r }}
-                        });
-                        epNo++
-                    {% endfor %}
-                    {% for f in fits[loop.index0] %}
-                        fitData.push({
-                            x: fitNo,
-                            y: {{ f }}
-                        });
-                        fitNo++
-                    {% endfor %}
-                    chartDataSets.push({
-                        label: '',
-                        borderColor: colors[colorInd],
-                        backgroundColor: colors[colorInd],
-                        pointRadius: 3,
-                        data: chartData,
-                    })
-                    chartDataSets.push({
-                        label: '',
-                        borderColor: colors[colorInd],
-                        backgroundColor: color(colors[colorInd]).alpha(0.2).rgbString(),
-                        showLine: true,
-                        fill: false,
-                        borderWidth: 1,
-                        pointRadius: 0,
-                        data: fitData,
-                    })
-                    colorInd++
-                    if (colorInd >= colors.length) {
-                        colorInd = 0;
-                    }
-                {% endfor %}
-                window.myScatter = new Chart(ctx, {
-                    type: 'scatter',
-                    data: {
-                        datasets: chartDataSets
+        {% endfor %}
+        window.myScatter = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: chartDataSets
+            },
+            options: {
+                title: {
+                    display: true,
+                    fontSize: 25,
+                    text: '{{ show.data['seriesName'] }}'
+                },
+                tooltips: {
+                    custom: function(tooltip) {
+                        if (!tooltip) return;
+                        tooltip.displayColors = false;
                     },
-                    options: {
-                        title: {
-                            display: true,
-                            fontSize: 25,
-                            text: '{{ show.data['seriesName'] }}'
+                    callbacks: {
+                        afterLabel: function(tooltipItem, data) {
+                            var y = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y
+                            return 'Rating: '+y
                         },
-                        tooltips: {
-                            custom: function(tooltip) {
-                                if (!tooltip) return;
-                                tooltip.displayColors = false;
-                            },
-                            callbacks: {
-                                afterLabel: function(tooltipItem, data) {
-                                    var y = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y
-                                    return 'Rating: '+y
-                                },
-                                label: function(tooltipItem, data) {
-                                    var x = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].x
-                                    return epNames[x-1]
+                        label: function(tooltipItem, data) {
+                            var x = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].x
+                            return epNames[x-1]
 
-                                }
-                            }
-                        },
-                        legend: {
-                            display: false
-                        },
-                        scales: {
-                            xAxes: [{
-                                gridLines: {
-                                    display: false,
-                                    drawBorder: false
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Episode Number'
-                                },
-                                ticks: {
-                                    precision: 0,
-                                    max: epNo,
-                                    callback: function(tick) {
-                                        return tick !== epNo ? tick : '';
-                                     }
-                                }
-                            }],
-                            yAxes: [{
-                                gridLines: {
-                                    color: '#404040',
-                                    drawBorder: false
-                                },
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Rating'
-                                }
-                            }]
                         }
                     }
-                });
-            };
-        </script>
-    </body>
-</html>
+                },
+                legend: {
+                    display: false
+                },
+                scales: {
+                    xAxes: [{
+                        gridLines: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Episode Number'
+                        },
+                        ticks: {
+                            precision: 0,
+                            max: epNo-1,
+                            callback: function(tick) {
+                                return tick !== epNo-1 ? tick : '';
+                                }
+                        }
+                    }],
+                    yAxes: [{
+                        gridLines: {
+                            color: '#404040',
+                            drawBorder: false
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Rating'
+                        }
+                    }]
+                }
+            }
+        });
+    };
+</script>
+{% endblock %}
