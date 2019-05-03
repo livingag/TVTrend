@@ -1,0 +1,109 @@
+<html lang="en">
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+    </head>
+    <body>
+        <div style="width:75%">
+            <canvas id="canvas"></canvas>
+        </div>
+        <script type="text/javascript">
+            var color = Chart.helpers.color;
+            var colors = [
+                '#4878CF',
+                '#EE854A',
+                '#6ACC64',
+                '#D65F5F',
+                '#B47CC7',
+                '#C4AD66',
+                '#77BEDB'
+            ];
+            window.onload = function () {
+                var chartDataSets = [];
+                var colorInd = 0;
+                var epNo = 1;
+                var fitNo = 1;
+                var epNames = {{ epNames|tojson|safe }};
+                var ctx = document.getElementById('canvas').getContext('2d');
+                {% for season in ratings %}
+                    var chartData = [];
+                    var fitData = [];
+                    {% for r in season %}
+                        chartData.push({
+                            x: epNo,
+                            y: {{ r }}
+                        });
+                        epNo++
+                    {% endfor %}
+                    {% for f in fits[loop.index0] %}
+                        fitData.push({
+                            x: fitNo,
+                            y: {{ f }}
+                        });
+                        fitNo++
+                    {% endfor %}
+                    chartDataSets.push({
+                        label: '',
+                        borderColor: colors[colorInd],
+                        backgroundColor: color(colors[colorInd]).alpha(0.2).rgbString(),
+                        data: chartData,
+                    })
+                    chartDataSets.push({
+                        label: '',
+                        borderColor: colors[colorInd],
+                        backgroundColor: color(colors[colorInd]).alpha(0.2).rgbString(),
+                        showLine: true,
+                        fill: false,
+                        pointRadius: 0,
+                        data: fitData,
+                    })
+                    colorInd++
+                    if (colorInd >= colors.length) {
+                        colorInd = 0;
+                    }
+                {% endfor %}
+                window.myScatter = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: chartDataSets
+                    },
+                    options: {
+                        title: {
+                            display: true,
+                            text: '{{ show.data['seriesName'] }}'
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    var x = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].x
+                                    return epNames[x-1]
+
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        },
+                        scales: {
+                            xAxes: [{
+                                gridLines: {
+                                    display: false
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Episode Number'
+                                },
+                                ticks: { precision: 0 }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Rating'
+                                }
+                            }]
+                        }
+                    }
+                });
+            };
+        </script>
+    </body>
+</html>
