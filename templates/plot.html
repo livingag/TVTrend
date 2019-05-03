@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
+<title>TVTrend - {{ show.data['seriesName'] }}</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <style type="text/css">
     @media only screen and (min-width: 1200px){
@@ -128,9 +129,10 @@
                         },
                         ticks: {
                             precision: 0,
-                            max: epNo-1,
+                            min: 0.75,
+                            max: epNo-0.75,
                             callback: function(tick) {
-                                return tick !== epNo-1 ? tick : '';
+                                return (tick === epNo-0.75 || tick === 0.75)  ? '' : tick;
                                 }
                         }
                     }],
