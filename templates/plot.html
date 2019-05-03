@@ -1,10 +1,38 @@
 <html lang="en">
     <head>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+        <style type="text/css">
+            body > .ui.container {
+                margin-top: 3em;
+            }
+            body {
+                color: whitesmoke;
+                background-color: #303030;
+            }
+            @media only screen and (min-width: 1200px){
+                .ui.container {
+                  width: 1175px;
+                }
+
+                .ui.grid.container {
+                  width: calc( 1175px  +  2rem ) !important;
+                }
+
+                .ui.relaxed.grid.container {
+                  width: calc( 1175px  +  3rem ) !important;
+                }
+
+                .ui.very.relaxed.grid.container {
+                  width: calc( 1175px  +  5rem ) !important;
+                }
+              }
+        </style>
     </head>
     <body>
-        <div style="width:75%">
-            <canvas id="canvas"></canvas>
+        <div class="ui container">
+        <canvas id="canvas"></canvas>
         </div>
         <script type="text/javascript">
             var color = Chart.helpers.color;
@@ -18,7 +46,8 @@
                 '#77BEDB'
             ];
             window.onload = function () {
-                var chartDataSets = [];
+                Chart.defaults.global.defaultFontColor='#f5f5f5';
+                chartDataSets = [];
                 var colorInd = 0;
                 var epNo = 1;
                 var fitNo = 1;
@@ -44,7 +73,8 @@
                     chartDataSets.push({
                         label: '',
                         borderColor: colors[colorInd],
-                        backgroundColor: color(colors[colorInd]).alpha(0.2).rgbString(),
+                        backgroundColor: colors[colorInd],
+                        pointRadius: 3,
                         data: chartData,
                     })
                     chartDataSets.push({
@@ -53,6 +83,7 @@
                         backgroundColor: color(colors[colorInd]).alpha(0.2).rgbString(),
                         showLine: true,
                         fill: false,
+                        borderWidth: 1,
                         pointRadius: 0,
                         data: fitData,
                     })
@@ -69,10 +100,19 @@
                     options: {
                         title: {
                             display: true,
+                            fontSize: 25,
                             text: '{{ show.data['seriesName'] }}'
                         },
                         tooltips: {
+                            custom: function(tooltip) {
+                                if (!tooltip) return;
+                                tooltip.displayColors = false;
+                            },
                             callbacks: {
+                                afterLabel: function(tooltipItem, data) {
+                                    var y = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y
+                                    return 'Rating: '+y
+                                },
                                 label: function(tooltipItem, data) {
                                     var x = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].x
                                     return epNames[x-1]
@@ -86,15 +126,26 @@
                         scales: {
                             xAxes: [{
                                 gridLines: {
-                                    display: false
+                                    display: false,
+                                    drawBorder: false
                                 },
                                 scaleLabel: {
                                     display: true,
                                     labelString: 'Episode Number'
                                 },
-                                ticks: { precision: 0 }
+                                ticks: {
+                                    precision: 0,
+                                    max: epNo,
+                                    callback: function(tick) {
+                                        return tick !== epNo ? tick : '';
+                                     }
+                                }
                             }],
                             yAxes: [{
+                                gridLines: {
+                                    color: '#404040',
+                                    drawBorder: false
+                                },
                                 scaleLabel: {
                                     display: true,
                                     labelString: 'Rating'

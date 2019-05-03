@@ -1,6 +1,36 @@
 <html lang="en">
-    <form action="{{ url_for('search') }}" method="POST">
-        <input name="showname" type="text" placeholder="Show Name...">
-        <button type="submit">Search</button>
-    </form>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+        <style type="text/css">
+            body > .ui.container {
+                margin-top: 3em;
+            }
+            body {
+                color: whitesmoke;
+                background-color: #303030;
+            }
+            a {
+                color: cornflowerblue;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ui container">
+            <h1>TVTrend</h1>
+            <p>Visualise trends of IMDb user ratings for TV shows</p>
+            <form class="ui form" action="{{ url_for('search') }}" method="POST">
+                <div class="field">
+                    <div class="ui fluid left icon action input">
+                        <i class="search icon"></i>
+                        <input type="text" placeholder="Search Show Name..." name="showname">
+                        <button class="ui button green" type="submit">Search</button>
+                    </div>
+                </div>
+            </form>
+            <p>Try <a href="{{ url_for('plot_show',tvdbId=73739) }}">Lost</a>, <a href="{{ url_for('plot_show',tvdbId=81189) }}">Breaking Bad</a>, or <a href="{{ url_for('plot_show',tvdbId=121361) }}">Game of Thrones</a></p>
+            <p><small>Made by <a href="http://github.com/livingag">@livingag</a></small></p>
+        </div>
+    </body>
 </html>

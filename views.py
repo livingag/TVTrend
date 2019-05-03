@@ -36,14 +36,9 @@ def plot_show(tvdbId):
             for div in soup.find_all("div","ipl-rating-star small"):
                 span = div.find_all("span","ipl-rating-star__rating")[0]
                 seasonratings.append(float(span.text))
+            eplist = soup.find_all("div","list detail eplist")[0]
+            epNames.extend(['S{}E{} - '.format(season,ep+1)+a.text for ep, a in enumerate(eplist.find_all("strong"))])
             ratings[season] = seasonratings
-
-            for ep in show[season]:
-                tooltip = 'S{}E{} - '.format(season,ep)
-                if show[season][ep]['episodeName'] == None:
-                    epNames.append(tooltip+'TBD')
-                else:
-                    epNames.append(tooltip+show[season][ep]['episodeName'])
 
     data = []
     fits = []
