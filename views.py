@@ -37,8 +37,9 @@ def plot_show(tvdbId):
                 span = div.find_all("span","ipl-rating-star__rating")[0]
                 seasonratings.append(float(span.text))
             eplist = soup.find_all("div","list detail eplist")[0]
-            epNames.extend(['S{}E{} - '.format(season,ep+1)+a.text for ep, a in enumerate(eplist.find_all("strong"))])
-            ratings[season] = seasonratings
+            if len(seasonratings) > 0:
+                epNames.extend(['S{}E{} - '.format(season,ep+1)+a.text for ep, a in enumerate(eplist.find_all("strong"))])
+                ratings[season] = seasonratings
 
     data = []
     fits = []
