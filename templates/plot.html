@@ -3,7 +3,6 @@
 {% block head %}
 <title>TVTrend - {{ show.data['seriesName'] }}</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/rail.min.css">
 <style type="text/css">
     @media only screen and (min-width: 1200px){
         .ui.container {
@@ -29,16 +28,16 @@
 <div class="ui container">
     <canvas id="canvas"></canvas>
     <div class="ui grid" style="margin-top: 1em; margin-left: 3em">
-    <div class="row" style="justify-content: right">
-        <div id="seriesTrendCheck" class="ui checkbox">
-            <input type="checkbox">
-            <label style="color: whitesmoke">Series Trendline</label>
-        </div>
-    </div>
-    <div class="row">
+    <div class="two wide column">
         <div id="scaleCheck" class="ui checkbox">
             <input type="checkbox">
             <label style="color: whitesmoke">Scale 1-10</label>
+        </div>
+    </div>
+    <div class="three wide column">
+        <div id="seriesTrendCheck" class="ui checkbox">
+            <input type="checkbox">
+            <label style="color: whitesmoke">Series Trendline</label>
         </div>
     </div>
     </div>
