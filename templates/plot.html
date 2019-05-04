@@ -45,7 +45,8 @@
         var colorInd = 0;
         var epNo = 1;
         var fitNo = 1;
-        var epNames = {{ epNames|tojson|safe }};
+        var epNames = {{ epInfo['names']|tojson|safe }};
+        var epDates = {{ epInfo['dates']|tojson|safe }};
         var ctx = document.getElementById('canvas').getContext('2d');
         {% for season in ratings %}
             var chartData = [];
@@ -111,6 +112,11 @@
                             return 'Rating: '+y
                         },
                         label: function(tooltipItem, data) {
+                            var x = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].x
+                            return 'Aired: '+epDates[x-1]
+
+                        },
+                        beforeLabel: function(tooltipItem, data) {
                             var x = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].x
                             return epNames[x-1]
 

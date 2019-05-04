@@ -26,7 +26,7 @@ def plot_show(tvdbId):
     show = t[int(tvdbId)]
 
     ratings = {}
-    epNames = []
+    epInfo = {'names': [], 'dates': []}
 
     for season in show.keys():
         if season > 0:
@@ -38,7 +38,8 @@ def plot_show(tvdbId):
                 seasonratings.append(float(span.text))
             eplist = soup.find_all("div","list detail eplist")[0]
             if len(seasonratings) > 0:
-                epNames.extend(['S{}E{} - '.format(season,ep+1)+a.text for ep, a in enumerate(eplist.find_all("strong"))])
+                epInfo['names'].extend(['S{}E{} - '.format(season,ep+1)+a.text for ep, a in enumerate(eplist.find_all("strong"))])
+                epInfo['dates'].extend([a.text.strip() for a in eplist.find_all("div","airdate")])
                 ratings[season] = seasonratings
 
     data = []
@@ -50,7 +51,7 @@ def plot_show(tvdbId):
         fits.append(list(np.poly1d(np.polyfit(xx, r, 1))(np.unique(xx))))
         x += len(r)
 
-    return render_template('plot.html',show=show,ratings=data,epNames=epNames,fits=fits)
+    return render_template('plot.html',show=show,ratings=data,epInfo=epInfo,fits=fits)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
