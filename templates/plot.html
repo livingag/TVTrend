@@ -3,6 +3,7 @@
 {% block head %}
 <title>TVTrend - {{ show.data['seriesName'] }}</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/rail.min.css">
 <style type="text/css">
     @media only screen and (min-width: 1200px){
         .ui.container {
@@ -26,7 +27,21 @@
 
 {% block content %}
 <div class="ui container">
-<canvas id="canvas"></canvas>
+    <canvas id="canvas"></canvas>
+    <div class="ui grid" style="margin-top: 1em; margin-left: 3em">
+    <div class="row" style="justify-content: right">
+        <div id="seriesTrendCheck" class="ui checkbox">
+            <input type="checkbox">
+            <label style="color: whitesmoke">Series Trendline</label>
+        </div>
+    </div>
+    <div class="row">
+        <div id="scaleCheck" class="ui checkbox">
+            <input type="checkbox">
+            <label style="color: whitesmoke">Scale 1-10</label>
+        </div>
+    </div>
+    </div>
 </div>
 <script type="text/javascript">
     var color = Chart.helpers.color;
@@ -48,6 +63,24 @@
         var epNames = {{ epInfo['names']|tojson|safe }};
         var epDates = {{ epInfo['dates']|tojson|safe }};
         var ctx = document.getElementById('canvas').getContext('2d');
+        var seriesFit = [];
+        {% for xx in fits['series'][0] %}
+            seriesFit.push({
+                x: {{ xx }},
+                y: {{ fits['series'][1][loop.index0] }}
+            });
+        {% endfor %}
+        chartDataSets.push({
+            label: '',
+            borderColor: '#909090',
+            borderDash: [5],
+            showLine: true,
+            fill: false,
+            borderWidth: 1,
+            pointRadius: 0,
+            data: seriesFit,
+            hidden: true
+        })
         {% for season in ratings %}
             var chartData = [];
             var fitData = [];
@@ -58,7 +91,7 @@
                 });
                 epNo++
             {% endfor %}
-            {% for f in fits[loop.index0] %}
+            {% for f in fits['season'][loop.index0] %}
                 fitData.push({
                     x: fitNo,
                     y: {{ f }}
@@ -148,6 +181,7 @@
                     yAxes: [{
                         gridLines: {
                             color: '#404040',
+                            zeroLineColor: '#404040',
                             drawBorder: false
                         },
                         scaleLabel: {
@@ -156,6 +190,30 @@
                         }
                     }]
                 }
+            }
+        });
+        var origMin = myScatter.scales["y-axis-1"].min
+        var origMax = myScatter.scales["y-axis-1"].amax
+        $('#seriesTrendCheck').checkbox({
+            onChecked: function () {
+                myScatter.data.datasets[0].hidden = false;
+                myScatter.update();
+            },
+            onUnchecked: function() {
+                myScatter.data.datasets[0].hidden = true;
+                myScatter.update();
+            }
+        });
+        $('#scaleCheck').checkbox({
+            onChecked: function () {
+                myScatter.options.scales.yAxes[0].ticks.max = 10
+                myScatter.options.scales.yAxes[0].ticks.min = 0
+                myScatter.update();
+            },
+            onUnchecked: function() {
+                myScatter.options.scales.yAxes[0].ticks.max = origMax
+                myScatter.options.scales.yAxes[0].ticks.min = origMin
+                myScatter.update();
             }
         });
     };

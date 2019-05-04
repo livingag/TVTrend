@@ -43,13 +43,17 @@ def plot_show(tvdbId):
                 ratings[season] = seasonratings
 
     data = []
-    fits = []
+    fits = {'season': [], 'series': []}
     x = 0
     for _, r in ratings.items():
         xx = list(range(x+1,len(r)+x+1))
         data.append(r)
-        fits.append(list(np.poly1d(np.polyfit(xx, r, 1))(np.unique(xx))))
+        fits['season'].append(list(np.poly1d(np.polyfit(xx, r, 1))(np.unique(xx))))
         x += len(r)
+
+    seriesdata = [b for a in data for b in a]
+    xx = list(np.arange(1,len(seriesdata)+1))
+    fits['series'] = [xx,list(np.poly1d(np.polyfit(xx, seriesdata, 1))(np.unique(xx)))]
 
     return render_template('plot.html',show=show,ratings=data,epInfo=epInfo,fits=fits)
 
