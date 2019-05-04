@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, jsonify
 from tvtrend import app
-import tvdb_api, requests, git, os
+import tvdb_api, requests
 from bs4 import BeautifulSoup
 import numpy as np
 
@@ -55,12 +55,14 @@ def plot_show(tvdbId):
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    import git
+    from pathlib import Path
     if request.method == 'POST':
         repo = git.Repo('.')
         origin = repo.remotes.origin
         repo.create_head('master', origin.refs.master).set_tracking_branch(origin.refs.master).checkout()
         origin.pull()
-        os.utime('/var/www/tvtrend_livingag_com_wsgi.py', (access_time, modification_time))
+        Path('/var/www/tvtrend_livingag_com_wsgi.py').touch()
         return '', 200
     else:
         return '', 400
