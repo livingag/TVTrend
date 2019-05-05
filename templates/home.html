@@ -7,17 +7,21 @@
 {% block content %}
 <div class="ui container">
     <h1>TVTrend</h1>
-    <p>Visualise trends of IMDb user ratings for TV shows</p>
+    <p>Visualise trends of user ratings for TV shows</p>
     <form class="ui form" action="{{ url_for('search') }}" method="POST">
-        <div class="field">
-            <div id="searchBar" class="ui fluid left icon action input">
+        <div class="inline field">
+            <div id="searchBar" class="ui left icon action input" style="width:50%">
                 <i class="search icon"></i>
-                <input type="text" placeholder="Search Show Name..." name="showname">
+                <input type="text" placeholder="Show Name..." name="showname" style="width:70%">
+                <select class="ui dropdown" name="source">
+                    <option selected="" value="imdb">IMDb</option>
+                    <option value="trakt">Trakt.tv</option>
+                </select>
                 <button id="searchButton" class="ui button green" type="submit">Search</button>
             </div>
         </div>
     </form>
-    <p>Try <a href="{{ url_for('plot_show',tvdbId=73739) }}">Lost</a>, <a href="{{ url_for('plot_show',tvdbId=81189) }}">Breaking Bad</a>, or <a href="{{ url_for('plot_show',tvdbId=121361) }}">Game of Thrones</a></p>
+    <p>Try <a href="{{ url_for('plot_show',tvdbId=73739,source=imdb) }}">Lost</a>, <a href="{{ url_for('plot_show',tvdbId=81189,source=imdb) }}">Breaking Bad</a>, or <a href="{{ url_for('plot_show',tvdbId=121361,source=imdb) }}">Game of Thrones</a></p>
     <p><small>Source on <a href="http://github.com/livingag/TVTrend">GitHub</a></small></p>
 </div>
 <script>

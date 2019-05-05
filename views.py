@@ -3,6 +3,7 @@ from tvtrend import app
 import tvdb_api, requests
 from bs4 import BeautifulSoup
 import numpy as np
+from datetime import datetime
 
 t = tvdb_api.Tvdb()
 
@@ -17,7 +18,7 @@ def search():
 
         show = t[showname]
 
-        return redirect(url_for('plot_show',tvdbId=show.data['id']))
+        return redirect(url_for('plot_show',tvdbId=show.data['id'])+'?source={}'.format(request.form['source']))
     else:
         return redirect(url_for('home'))
 
@@ -25,22 +26,43 @@ def search():
 def plot_show(tvdbId):
     show = t[int(tvdbId)]
 
+    if 'source' in request.args.keys():
+        source = request.args['source']
+    else:
+        source = 'imdb'
+
     ratings = {}
     epInfo = {'names': [], 'dates': []}
 
     for season in show.keys():
         if season > 0:
             seasonratings = []
-            r = requests.get('https://www.imdb.com/title/{}/episodes?season={}'.format(show.data['imdbId'],season))
-            soup = BeautifulSoup(r.content)
-            for div in soup.find_all("div","ipl-rating-star small"):
-                span = div.find_all("span","ipl-rating-star__rating")[0]
-                seasonratings.append(float(span.text))
-            eplist = soup.find_all("div","list detail eplist")[0]
-            if len(seasonratings) > 0:
-                epInfo['names'].extend(['S{}E{} - '.format(season,ep+1)+a.text for ep, a in enumerate(eplist.find_all("strong"))])
-                epInfo['dates'].extend([a.text.strip() for a in eplist.find_all("div","airdate")])
+            if source =='imdb':
+                r = requests.get('https://www.imdb.com/title/{}/episodes?season={}'.format(show.data['imdbId'],season))
+                soup = BeautifulSoup(r.content)
+                for div in soup.find_all("div","ipl-rating-star small"):
+                    span = div.find_all("span","ipl-rating-star__rating")[0]
+                    seasonratings.append(float(span.text))
+                eplist = soup.find_all("div","list detail eplist")[0]
+                if len(seasonratings) > 0:
+                    epInfo['names'].extend(['S{}E{} - '.format(season,ep+1)+a.text for ep, a in enumerate(eplist.find_all("strong"))])
+                    epInfo['dates'].extend([a.text.strip() for a in eplist.find_all("div","airdate")])
+                    ratings[season] = seasonratings
+            elif source == 'trakt':
+                r = requests.get('https://trakt.tv/shows/{}/seasons/{}'.format(show.data['imdbId'],season))
+                soup = BeautifulSoup(r.content)
+                rates = [int(a.text[:-1])/10 for a in soup.find_all("div", "percentage")]
+                names = [a.text for a in soup.find_all("span","main-title")[::2]]
+                li = soup.find("div",{"id": "seasons-episodes-sortable"})
+                dates = [a['data-date'][:10] for a in li.findChildren("span","convert-date")][::2]
+                for i, d in enumerate(dates):
+                    if datetime.strptime(d,'%Y-%m-%d') <= datetime.now():
+                        seasonratings.append(rates[i])
+                        epInfo['names'].append('S{}E{} - '.format(season,i+1)+names[i])
+                        epInfo['dates'].append(d)
                 ratings[season] = seasonratings
+            else:
+                return redirect(url_for('home'))
 
     data = []
     fits = {'season': [], 'series': []}
