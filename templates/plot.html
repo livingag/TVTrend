@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
-<title>TVTrend - {{ show.data['seriesName'] }}</title>
+<title>TVTrend - {{ showname }}</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <style type="text/css">
     @media only screen and (min-width: 1200px){
@@ -131,7 +131,7 @@
                 title: {
                     display: true,
                     fontSize: 25,
-                    text: '{{ show.data['seriesName'] }}'
+                    text: '{{ showname }}'
                 },
                 tooltips: {
                     custom: function(tooltip) {
