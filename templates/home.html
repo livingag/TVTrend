@@ -8,6 +8,19 @@
 <div class="ui container">
     <h1>TVTrend</h1>
     <p>Visualise trends of user ratings for TV shows</p>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="ui negative message">
+            <i class="close icon"></i>
+            <div class="header">
+                Plotting failed:
+            </div>
+            <p>{{ message }}</p>
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
     <form class="ui form" action="{{ url_for('search') }}" method="POST">
         <div class="inline field">
             <div id="searchBar" class="ui left icon action input" style="width:50%">
@@ -29,5 +42,10 @@
         var d = document.getElementById('searchBar');
         d.className += " loading";
     });
+    $(document).ready(function (){
+        $('.message .close').on('click', function () {
+            $(this).closest('.message').transition('fade');
+        });
+    })
 </script>
 {% endblock %}
