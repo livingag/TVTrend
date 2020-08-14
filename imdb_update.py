@@ -1,24 +1,28 @@
-import requests, gzip, io
+import requests, gzip, io, os
 import pandas as pd
 from models import *
 
-def read_tsv(url):
+def read_tsv(url, fields=None):
     r = requests.get(url, timeout=30, stream=True)
     gz = r.content
     f = io.BytesIO(gz)
-    with gzip.GzipFile(fileobj=f) as fh:
-        return pd.read_csv(fh, delimiter='\t')
+    fh =gzip.GzipFile(fileobj=f)
+    r.close()
+    return pd.read_csv(fh, delimiter='\t', usecols=fields)
 
 db.drop_all()
+db.session.commit()
 db.create_all()
 
-names = read_tsv('https://datasets.imdbws.com/title.basics.tsv.gz')
 eps = read_tsv('https://datasets.imdbws.com/title.episode.tsv.gz')
 ratings = read_tsv('https://datasets.imdbws.com/title.ratings.tsv.gz')
 
 eps = eps.set_index('tconst').join(ratings.set_index('tconst')).fillna(0)
-eps = eps.merge(names[['tconst','primaryTitle']], how='left', on='tconst')
-eps = eps.merge(names[['tconst','primaryTitle']], how='left', left_on='parentTconst', right_on='tconst')
+del ratings
+names = read_tsv('https://datasets.imdbws.com/title.basics.tsv.gz', ['tconst', 'primaryTitle'])
+eps = eps.merge(names, how='left', on='tconst')
+eps = eps.merge(names, how='left', left_on='parentTconst', right_on='tconst')
+del names
 eps = eps.rename(columns= {'primaryTitle_x': 'epTitle', 'primaryTitle_y': 'showTitle', 'tconst_x': 'tconst'})
 eps = eps[(eps['numVotes'] > 100) & (eps['seasonNumber'] != '\\N')]
 
