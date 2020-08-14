@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import numpy as np
 from datetime import datetime
+from models import *
 
 headers = {
     "Content-Type": "application/json",
@@ -81,32 +82,21 @@ def plot_show(imdbId):
         return redirect(url_for("home"))
 
     ratings = {}
-    epInfo = {"names": [], "dates": []}
+    epInfo = {"names": []}
 
-    for season in [a["number"] for a in json.loads(r.content)]:
-        if season > 0:
-            seasonratings = []
-            if source == "imdb":
-                r = requests.get(
-                    "https://www.imdb.com/title/{}/episodes?season={}".format(
-                        imdbId, season
-                    )
-                )
-                soup = BeautifulSoup(r.content)
-                for div in soup.find_all("div", "ipl-rating-star small"):
-                    span = div.find_all("span", "ipl-rating-star__rating")[0]
-                    seasonratings.append(float(span.text))
-                eplist = soup.find_all("div", "list detail eplist")[0]
-                if len(seasonratings) > 0:
-                    names = [
-                        "S{}E{} - ".format(season, ep + 1) + a.text
-                        for ep, a in enumerate(eplist.find_all("strong"))
-                    ]
-                    dates = [a.text.strip() for a in eplist.find_all("div", "airdate")]
-                    epInfo["names"].extend(names)
-                    epInfo["dates"].extend(dates)
-                    ratings[season] = seasonratings
-            elif source == "trakt":
+    if source == "imdb":
+        show = Show.query.filter_by(imdbid=imdbId).first()
+        show.sort_episodes()
+        seasons = set([e.season for e in show.episodes])
+        for sea in seasons:
+            ratings[sea] = [x.rating/10 for x in show.episodes if x.season == sea]
+        epInfo["names"] = [e.name for e in show.episodes]
+        epInfo["dates"] = [e.votes for e in show.episodes]
+        showname = show.name
+    elif source ==  "trakt":
+        for season in [a["number"] for a in json.loads(r.content)]:
+            if season > 0:
+                seasonratings = []
                 r = requests.get(
                     "https://trakt.tv/shows/{}/seasons/{}".format(imdbId, season)
                 )
@@ -127,9 +117,11 @@ def plot_show(imdbId):
                         )
                         epInfo["dates"].append(d)
                 ratings[season] = seasonratings
-            else:
-                flash("Invalid ratings source - must be imdb or trakt")
-                return redirect(url_for("home"))
+        r = requests.get("https://api.trakt.tv/shows/{}".format(imdbId), headers=headers)
+        showname = json.loads(r.content)["title"]
+    else:
+        flash("Invalid ratings source - must be imdb or trakt")
+        return redirect(url_for("home"))
 
     data = []
     fits = {"season": [], "series": []}
@@ -145,9 +137,6 @@ def plot_show(imdbId):
     xx = list(np.arange(1, len(seriesdata) + 1))
     seriesfit = list(np.poly1d(np.polyfit(xx, seriesdata, 1))(np.unique(xx)))
     fits["series"] = [xx, seriesfit]
-
-    r = requests.get("https://api.trakt.tv/shows/{}".format(imdbId), headers=headers)
-    showname = json.loads(r.content)["title"]
 
     return render_template(
         "plot.html", showname=showname, ratings=data, epInfo=epInfo, fits=fits
