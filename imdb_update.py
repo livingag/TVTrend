@@ -9,6 +9,7 @@ def read_tsv(url):
     with gzip.GzipFile(fileobj=f) as fh:
         return pd.read_csv(fh, delimiter='\t')
 
+db.drop_all()
 db.create_all()
 
 names = read_tsv('https://datasets.imdbws.com/title.basics.tsv.gz')
