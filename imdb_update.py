@@ -7,12 +7,12 @@ today = datetime.date.today()
 weekday = today.weekday()
 
 def read_tsv(url, fields=None):
-        r = requests.get(url, timeout=30, stream=True)
-        gz = r.content
-        f = io.BytesIO(gz)
-        fh =gzip.GzipFile(fileobj=f)
-        r.close()
-        return pd.read_csv(fh, delimiter='\t', usecols=fields)
+    r = requests.get(url, timeout=30, stream=True)
+    gz = r.content
+    f = io.BytesIO(gz)
+    fh =gzip.GzipFile(fileobj=f)
+    r.close()
+    return pd.read_csv(fh, delimiter='\t', usecols=fields)
 
 if (weekday == 0):
     db.drop_all()
@@ -37,7 +37,7 @@ if (weekday == 0):
 
     db.session.commit()
 
-    shows = eps.drop_duplicates(subset=['showTitle'])
+    shows = eps.drop_duplicates(subset=['parentTconst'])
 
     for show in shows.itertuples():
         show = Show(show.parentTconst, show.showTitle)
