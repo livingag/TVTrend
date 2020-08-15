@@ -1,7 +1,6 @@
 from flask import render_template, request, redirect, url_for, jsonify, flash
 from tvtrend import app
-import json
-import requests
+import json, requests, hmac, hashlib
 from bs4 import BeautifulSoup
 import numpy as np
 from datetime import datetime
@@ -89,11 +88,11 @@ def plot_show(imdbId):
         show.sort_episodes()
         seasons = set([e.season for e in show.episodes])
         for sea in seasons:
-            ratings[sea] = [x.rating/10 for x in show.episodes if x.season == sea]
+            ratings[sea] = [x.rating / 10 for x in show.episodes if x.season == sea]
         epInfo["names"] = [e.name for e in show.episodes]
         epInfo["dates"] = [e.votes for e in show.episodes]
         showname = show.name
-    elif source ==  "trakt":
+    elif source == "trakt":
         for season in [a["number"] for a in json.loads(r.content)]:
             if season > 0:
                 seasonratings = []
@@ -117,7 +116,9 @@ def plot_show(imdbId):
                         )
                         epInfo["dates"].append(d)
                 ratings[season] = seasonratings
-        r = requests.get("https://api.trakt.tv/shows/{}".format(imdbId), headers=headers)
+        r = requests.get(
+            "https://api.trakt.tv/shows/{}".format(imdbId), headers=headers
+        )
         showname = json.loads(r.content)["title"]
     else:
         flash("Invalid ratings source - must be imdb or trakt")
@@ -149,13 +150,24 @@ def webhook():
     from pathlib import Path
 
     if request.method == "POST":
-        repo = git.Repo(".")
-        origin = repo.remotes.origin
-        repo.create_head("master", origin.refs.master).set_tracking_branch(
-            origin.refs.master
-        ).checkout()
-        origin.pull()
-        Path("/var/www/tvtrend_livingag_com_wsgi.py").touch()
-        return "", 200
+        signature = request.headers.get("X-Hub-Signature")
+        if not signature or not signature.startswith("sha1="):
+            return "", 400
+
+        digest = hmac.new(
+            app.config["GITHUB_SECRET"].encode(), request.data, hashlib.sha1
+        ).hexdigest()
+
+        if hmac.compare_digest(signature, "sha1=" + digest):
+            repo = git.Repo(".")
+            origin = repo.remotes.origin
+            repo.create_head("master", origin.refs.master).set_tracking_branch(
+                origin.refs.master
+            ).checkout()
+            origin.pull()
+            Path("/var/www/tvtrend_livingag_com_wsgi.py").touch()
+            return "", 200
+        else:
+            return "", 400
     else:
         return "", 400
