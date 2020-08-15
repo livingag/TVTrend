@@ -21,26 +21,25 @@ if (weekday == 0):
 
     eps = read_tsv('https://datasets.imdbws.com/title.episode.tsv.gz')
     ratings = read_tsv('https://datasets.imdbws.com/title.ratings.tsv.gz')
+    ratings = ratings[ratings['numVotes'] > 100]
 
-    eps = eps.set_index('tconst').join(ratings.set_index('tconst')).fillna(0)
+    eps = eps[eps['seasonNumber'] != '\\N']
+    eps = eps.merge(ratings, how='inner', on='tconst')
     del ratings
     names = read_tsv('https://datasets.imdbws.com/title.basics.tsv.gz', ['tconst', 'primaryTitle'])
     eps = eps.merge(names, how='left', on='tconst')
-    eps = eps.merge(names, how='left', left_on='parentTconst', right_on='tconst')
-    del names
-    eps = eps.rename(columns= {'primaryTitle_x': 'epTitle', 'primaryTitle_y': 'showTitle', 'tconst_x': 'tconst'})
-    eps = eps[(eps['numVotes'] > 100) & (eps['seasonNumber'] != '\\N')]
 
     for i, ep in enumerate(eps.itertuples()):
         epno = 'S'+str(ep.seasonNumber).zfill(2)+'E'+str(ep.episodeNumber).zfill(2)+' - '
-        db.session.add(Episode(ep.tconst, ep.parentTconst, epno+ep.epTitle, ep.seasonNumber, ep.episodeNumber, int(ep.averageRating*10), ep.numVotes))
+        db.session.add(Episode(ep.tconst, ep.parentTconst, epno+ep.primaryTitle, ep.seasonNumber, ep.episodeNumber, int(ep.averageRating*10), ep.numVotes))
 
     db.session.commit()
 
-    shows = eps.drop_duplicates(subset=['parentTconst'])
+    shows = eps[['parentTconst']].drop_duplicates()
+    shows = shows.merge(names, left_on='parentTconst', right_on='tconst')
 
     for show in shows.itertuples():
-        show = Show(show.parentTconst, show.showTitle)
+        show = Show(show.parentTconst, show.primaryTitle)
         db.session.add(show)
 
     db.session.commit()
