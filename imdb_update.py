@@ -2,6 +2,7 @@ import requests, gzip, io, os
 import pandas as pd
 from models import *
 import datetime
+import numpy as np
 
 today = datetime.date.today()
 weekday = today.weekday()
@@ -41,5 +42,13 @@ if (weekday == 0):
     for show in shows.itertuples():
         show = Show(show.parentTconst, show.primaryTitle)
         db.session.add(show)
+
+    db.session.commit()
+
+    for show in Show.query.all():
+        ratings = [e.rating for e in show.episodes]
+        show.average = int(np.mean(ratings))
+        show.std = np.round(np.std(ratings) / 10, 2)
+        show.votes = sum([e.votes for e in show.episodes])
 
     db.session.commit()

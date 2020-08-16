@@ -5,7 +5,9 @@ class Show(db.Model):
     __tablename__ = "shows"
     imdbid = db.Column(db.String(9), primary_key=True)
     name = db.Column(db.String(200))
-    seasons = db.Column(db.Integer())
+    votes = db.Column(db.Integer())
+    average = db.Column(db.Integer())
+    std = db.Column(db.Float())
     episodes = db.relationship('Episode', backref='show', lazy=True)
 
     def __init__(self, imdbid, name):

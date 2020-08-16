@@ -77,8 +77,9 @@ def plot_show(imdbId):
     epInfo["names"] = [e.name for e in show.episodes]
     epInfo["dates"] = [e.votes for e in show.episodes]
     shInfo["name"] = show.name
-    shInfo["average"] = np.round(np.mean([e.rating for e in show.episodes]) / 10, 2)
-    shInfo["votes"] = sum([e.votes for e in show.episodes])
+    shInfo["average"] = show.average / 10
+    shInfo["std"] = show.std
+    shInfo["votes"] = show.votes
 
     data = []
     fits = {"season": [], "series": []}
