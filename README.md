@@ -1,7 +1,7 @@
 # TVTrend
 Plot episode user ratings for TV shows.
 
-Show searching is provided through the [Trakt.tv API](https://trakt.docs.apiary.io/). Episode rating data is scraped from either [IMDb](http://imdb.com) or [Trakt.tv](http://trakt.tv).
+Episode rating data is obtained from [IMDb](https://datasets.imdbws.com/).
 
 ![Example plot for Lost](static/example.png)
 
@@ -11,5 +11,5 @@ Config variables are required in a `config.py` file in the root directory, conta
 
 Variable | Description
 --- | ---
-`TRAKT_API` | Trakt.tv API key
+`TMDB_API` | TMDB API key
 `SECRET_KEY` | flask secret key

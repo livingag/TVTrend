@@ -6,16 +6,11 @@ import numpy as np
 from datetime import datetime
 from models import *
 
-headers = {
-    "Content-Type": "application/json",
-    "trakt-api-version": "2",
-    "trakt-api-key": app.config["TRAKT_API"],
-}
-
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    shownames = [{"title": x.name} for x in Show.query.all()]
+    return render_template("home.html", shownames=shownames)
 
 
 @app.route("/search", methods=["GET", "POST"])
@@ -30,22 +25,13 @@ def search():
         home if show cannot be found.
     """
     if request.method == "POST":
-        showname = request.form["showname"].replace(" ", "%20")
+        try:
+            showname = request.form["showname"]
+            show = Show.query.filter_by(name=showname).first()
 
-        r = requests.get(
-            "https://api.trakt.tv/search/show?query={}".format(showname),
-            headers=headers,
-        )
+            return redirect(url_for("plot_show", imdbId=show.imdbid))
 
-        if len(json.loads(r.content)) > 0:
-            imdbId = json.loads(r.content)[0]["show"]["ids"]["imdb"]
-
-            return redirect(
-                url_for("plot_show", imdbId=imdbId)
-                + "?source={}".format(request.form["source"])
-            )
-
-        else:
+        except:
             flash("Show could not be found!")
             return redirect(url_for("home"))
     else:
@@ -67,62 +53,32 @@ def plot_show(imdbId):
     Returns:
         Plotting page response.
     """
-    if "source" in request.args.keys():
-        source = request.args["source"]
-    else:
-        source = "imdb"
 
     r = requests.get(
-        "https://api.trakt.tv/shows/{}/seasons".format(imdbId), headers=headers
+        "https://api.themoviedb.org/3/find/{}?api_key={}&external_source=imdb_id".format(
+            imdbId, app.config["TMDB_API"]
+        )
     )
-
-    if r.status_code != 200:
-        flash("Invalid IMDb ID!")
-        return redirect(url_for("home"))
 
     ratings = {}
     epInfo = {"names": []}
+    shInfo = {}
 
-    if source == "imdb":
-        show = Show.query.filter_by(imdbid=imdbId).first()
-        show.sort_episodes()
-        seasons = set([e.season for e in show.episodes])
-        for sea in seasons:
-            ratings[sea] = [x.rating / 10 for x in show.episodes if x.season == sea]
-        epInfo["names"] = [e.name for e in show.episodes]
-        epInfo["dates"] = [e.votes for e in show.episodes]
-        showname = show.name
-    elif source == "trakt":
-        for season in [a["number"] for a in json.loads(r.content)]:
-            if season > 0:
-                seasonratings = []
-                r = requests.get(
-                    "https://trakt.tv/shows/{}/seasons/{}".format(imdbId, season)
-                )
-                soup = BeautifulSoup(r.content)
-                rates = [
-                    int(a.text[:-1]) / 10 for a in soup.find_all("div", "percentage")
-                ]
-                names = [a.text for a in soup.find_all("span", "main-title")[::2]]
-                li = soup.find("div", {"id": "seasons-episodes-sortable"})
-                dates = [
-                    a["data-date"][:10] for a in li.findChildren("span", "convert-date")
-                ][::2]
-                for i, d in enumerate(dates):
-                    if datetime.strptime(d, "%Y-%m-%d") <= datetime.now():
-                        seasonratings.append(rates[i])
-                        epInfo["names"].append(
-                            "S{}E{} - ".format(season, i + 1) + names[i]
-                        )
-                        epInfo["dates"].append(d)
-                ratings[season] = seasonratings
-        r = requests.get(
-            "https://api.trakt.tv/shows/{}".format(imdbId), headers=headers
-        )
-        showname = json.loads(r.content)["title"]
-    else:
-        flash("Invalid ratings source - must be imdb or trakt")
-        return redirect(url_for("home"))
+    shInfo["poster"] = (
+        "https://image.tmdb.org/t/p/w500"
+        + json.loads(r.content)["tv_results"][0]["poster_path"]
+    )
+
+    show = Show.query.filter_by(imdbid=imdbId).first()
+    show.sort_episodes()
+    seasons = set([e.season for e in show.episodes])
+    for sea in seasons:
+        ratings[sea] = [x.rating / 10 for x in show.episodes if x.season == sea]
+    epInfo["names"] = [e.name for e in show.episodes]
+    epInfo["dates"] = [e.votes for e in show.episodes]
+    shInfo["name"] = show.name
+    shInfo["average"] = np.round(np.mean([e.rating for e in show.episodes]) / 10, 2)
+    shInfo["votes"] = sum([e.votes for e in show.episodes])
 
     data = []
     fits = {"season": [], "series": []}
@@ -140,7 +96,7 @@ def plot_show(imdbId):
     fits["series"] = [xx, seriesfit]
 
     return render_template(
-        "plot.html", showname=showname, ratings=data, epInfo=epInfo, fits=fits
+        "plot.html", show=shInfo, ratings=data, epInfo=epInfo, fits=fits
     )
 
 

@@ -1,40 +1,34 @@
 {% extends "base.html" %}
 
 {% block head %}
-<title>TVTrend - {{ showname }}</title>
+<title>TVTrend - {{ show['name'] }}</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
-<style type="text/css">
-    @media only screen and (min-width: 1200px){
-        .ui.container {
-            width: 80%;
-        }
-
-        .ui.grid.container {
-            width: calc( 80%  +  2rem ) !important;
-        }
-
-        .ui.relaxed.grid.container {
-            width: calc( 80%  +  3rem ) !important;
-        }
-
-        .ui.very.relaxed.grid.container {
-            width: calc( 80%  +  5rem ) !important;
-        }
-        }
-</style>
 {% endblock %}
 
 {% block content %}
 <div class="ui container">
     <canvas id="canvas"></canvas>
     <div class="ui grid" style="margin-top: 1em; margin-left: 3em">
-    <div class="four wide column">
-        <div id="scaleCheck" class="ui checkbox">
-            <input type="checkbox">
-            <label style="color: whitesmoke">Scale 1-10</label>
+    <div class="three wide column">
+        <img class="ui fluid rounded image" src={{show['poster']}} width="250">
+    </div>
+    <div class="eight wide column">
+        <div class="ui left aligned two column stackable grid container">
+            <div class="column"><h1>{{show['name']}}</h1></div>
+            <div class="column"></div>
+            <div class="five wide column">Average rating:</div>
+            <div class="column">{{show['average']}}</div>
+            <div class="five wide column">Number of votes:</div>
+            <div class="column">{{show['votes']}}</div>
         </div>
     </div>
-    <div class="four wide column">
+    <div class="two wide right aligned column">
+        <div id="scaleCheck" class="ui checkbox">
+            <input type="checkbox">
+            <label style="color: whitesmoke">Scale 0-10</label>
+        </div>
+    </div>
+    <div class="three wide right aligned column">
         <div id="seriesTrendCheck" class="ui checkbox">
             <input type="checkbox">
             <label style="color: whitesmoke">Series Trendline</label>
@@ -127,11 +121,6 @@
             options: {
                 animation: {
                     duration: 0
-                },
-                title: {
-                    display: true,
-                    fontSize: 25,
-                    text: '{{ showname }}'
                 },
                 tooltips: {
                     custom: function(tooltip) {
