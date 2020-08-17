@@ -10,8 +10,7 @@
                 source: {{shownames|tojson|safe}},
                 searchFields: ['title'],
                 onSelect: function (result, response) {
-                    document.getElementById("test").value = result['title']
-                    document.getElementById("showForm").submit();
+                    window.location = window.location.origin + '/' + result['id']
                 }
             });
 
@@ -40,16 +39,14 @@
     {% endif %}
     {% endwith %}
 
-    <form class="ui form" id="showForm" action="{{ url_for('search') }}" method="POST" onkeydown="return event.key != 'Enter';">
-        <div class="ui search">
-            <div class="ui icon input" style="width: 70%;">
-                <input class="prompt" name="showname" placeholder="Show name..." type="text" id="test">
-                <i class="search icon"></i>
-            </div>
-            <div class="results" style="width: 70%;"></div>
+    <div class="ui form search">
+        <div class="ui icon input" style="width: 70%;">
+            <input class="prompt" name="showname" placeholder="Show name..." type="text" id="test">
+            <i class="search icon"></i>
         </div>
-    </form>
-    <p>Try <a href="{{ url_for('plot_show',imdbId='tt0411008',source='imdb') }}">Lost</a>, <a href="{{ url_for('plot_show',imdbId='tt0903747',source='imdb') }}">Breaking Bad</a>, or <a href="{{ url_for('plot_show',imdbId='tt0944947',source='imdb') }}">Game of Thrones</a></p>
+        <div class="results" style="width: 70%;"></div>
+    </div>
+    <p>Try <a href="{{ url_for('plot_show',imdbId='tt0411008') }}">Lost</a>, <a href="{{ url_for('plot_show',imdbId='tt0903747') }}">Breaking Bad</a>, or <a href="{{ url_for('plot_show',imdbId='tt0944947') }}">Game of Thrones</a></p>
     <p><small>Source on <a href="http://github.com/livingag/TVTrend">GitHub</a></small></p>
     </div></div>
 </div>

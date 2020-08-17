@@ -1,54 +1,25 @@
 from flask import render_template, request, redirect, url_for, jsonify, flash
 from tvtrend import app
 import json, requests, hmac, hashlib
-from bs4 import BeautifulSoup
 import numpy as np
 from datetime import datetime
-from models import *
+from models import Show
 
 
 @app.route("/")
 def home():
-    shownames = [{"title": x.name} for x in Show.query.all()]
+    shownames = [{"title": x.name, "id": x.imdbid} for x in Show.query.all()]
     return render_template("home.html", shownames=shownames)
-
-
-@app.route("/search", methods=["GET", "POST"])
-def search():
-    """Queries the trakt.tv API for the specified show name.
-
-    Args:
-        showname: Show name to query (from form input).
-
-    Returns:
-        Redirect to plot_show with the corresponding IMDb ID, or back to
-        home if show cannot be found.
-    """
-    if request.method == "POST":
-        try:
-            showname = request.form["showname"]
-            show = Show.query.filter_by(name=showname).first()
-
-            return redirect(url_for("plot_show", imdbId=show.imdbid))
-
-        except:
-            flash("Show could not be found!")
-            return redirect(url_for("home"))
-    else:
-        return redirect(url_for("home"))
 
 
 @app.route("/<string:imdbId>")
 def plot_show(imdbId):
     """Plot trend of episode ratings for a given tv show IMDb ID.
 
-    Scrapes the specified source (IMDb or trakt.tv) for episode ratings
-    and returns response template with trend data plotted. Source is
-    specified through query string.
+    Takes IMDb ID and returns response template with trend data plotted.
 
     Args:
         imdbID: IMDb ID of TV show to be plotted.
-        source (optional): source for episode ratings. Defaults to 'imdb'.
 
     Returns:
         Plotting page response.
