@@ -13,7 +13,6 @@
                     window.location = window.location.origin + '/' + result['id']
                 }
             });
-
     });
 </script>
 {% endblock %}
@@ -46,7 +45,8 @@
         </div>
         <div class="results" style="width: 70%;"></div>
     </div>
-    <p>Try <a href="{{ url_for('plot_show',imdbId='tt0411008') }}">Lost</a>, <a href="{{ url_for('plot_show',imdbId='tt0903747') }}">Breaking Bad</a>, or <a href="{{ url_for('plot_show',imdbId='tt0944947') }}">Game of Thrones</a></p>
+    <p></p>
+    <p>Or see the <a href="{{ url_for('popular') }}">Top 250</a> most popular shows</p>
     <p><small>Source on <a href="http://github.com/livingag/TVTrend">GitHub</a></small></p>
     </div></div>
 </div>

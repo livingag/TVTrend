@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>TVTrend - Top 250</title>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.semanticui.min.css">
+<script src="https:////cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/dataTables.semanticui.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('table').dataTable( {
+            "order": [[ 3, "desc" ]],
+            "pageLength": 25,
+            "fnInitComplete": function(oSettings, json) {
+              $('#hide').css('visibility', 'visible');
+            }
+          } );
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="ui container">
+    <h1>Top 250 Most Popular Shows</h1>
+    <div id="hide" style="visibility: hidden;">
+    <table class="ui sortable celled table">
+        <thead>
+            <th>Name</th>
+            <th class="number">Average Rating</th>
+            <th class="number">Standard Deviation</th>
+            <th class="default number">Total Votes</th>
+        </thead>
+        <tbody>
+            {% for show in shows %}
+            <tr>
+                <td><a href="{{ url_for('home') + show.imdbid }}">{{show.name}}</a></td>
+                <td>{{show.average/10}}</td>
+                <td>{{show.std}}</td>
+                <td>{{show.votes}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

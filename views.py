@@ -12,6 +12,13 @@ def home():
     return render_template("home.html", shownames=shownames)
 
 
+@app.route("/popular")
+def popular():
+    return render_template(
+        "popular.html", shows=Show.query.order_by(Show.votes.desc()).all()[:250]
+    )
+
+
 @app.route("/<string:imdbId>")
 def plot_show(imdbId):
     """Plot trend of episode ratings for a given tv show IMDb ID.
@@ -35,10 +42,13 @@ def plot_show(imdbId):
     epInfo = {"names": []}
     shInfo = {}
 
-    shInfo["poster"] = (
-        "https://image.tmdb.org/t/p/w500"
-        + json.loads(r.content)["tv_results"][0]["poster_path"]
-    )
+    try:
+        shInfo["poster"] = (
+            "https://image.tmdb.org/t/p/w500"
+            + json.loads(r.content)["tv_results"][0]["poster_path"]
+        )
+    except:
+        pass
 
     show = Show.query.filter_by(imdbid=imdbId).first()
     show.sort_episodes()
