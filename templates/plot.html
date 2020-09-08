@@ -57,6 +57,7 @@
         var fitNo = 1;
         var epNames = {{ epInfo['names']|tojson|safe }};
         var epDates = {{ epInfo['dates']|tojson|safe }};
+        epIds = {{ epInfo['ids']|tojson|safe }};
         var ctx = document.getElementById('canvas').getContext('2d');
         var seriesFit = [];
         {% for xx in fits['series'][0] %}
@@ -182,8 +183,8 @@
                 }
             }
         });
-        var origMin = myScatter.scales["y-axis-1"].min
-        var origMax = myScatter.scales["y-axis-1"].amax
+        var origMin = window.myScatter.scales["y-axis-1"].min
+        var origMax = window.myScatter.scales["y-axis-1"].amax
         $('#seriesTrendCheck').checkbox({
             onChecked: function () {
                 myScatter.data.datasets[0].hidden = false;
@@ -207,5 +208,14 @@
             }
         });
     };
+    $(document).ready(function () {
+        document.getElementById("canvas").onclick = function(evt){
+            var activePoints = myScatter.getElementAtEvent(event);
+            if (activePoints.length > 0) {
+              var x = myScatter.data.datasets[activePoints[0]._datasetIndex].data[activePoints[0]._index].x
+              window.location = 'https://www.imdb.com/title/'+epIds[x-1]
+            }
+          };
+        })
 </script>
 {% endblock %}

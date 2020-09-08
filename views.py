@@ -3,7 +3,7 @@ from tvtrend import app
 import json, requests, hmac, hashlib
 import numpy as np
 from datetime import datetime
-from models import Show
+from models import *
 
 
 @app.route("/")
@@ -57,6 +57,7 @@ def plot_show(imdbId):
         ratings[sea] = [x.rating / 10 for x in show.episodes if x.season == sea]
     epInfo["names"] = [e.name for e in show.episodes]
     epInfo["dates"] = [e.votes for e in show.episodes]
+    epInfo["ids"] = [e.imdbid for e in show.episodes]
     shInfo["name"] = show.name
     shInfo["average"] = show.average / 10
     shInfo["std"] = show.std
