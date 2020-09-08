@@ -15,7 +15,7 @@ def read_tsv(url, fields=None):
     r.close()
     return pd.read_csv(fh, delimiter='\t', usecols=fields)
 
-if (weekday == 0):
+if (weekday == 1):
     db.drop_all()
     db.session.commit()
     db.create_all()
@@ -28,11 +28,12 @@ if (weekday == 0):
     eps = eps.merge(ratings, how='inner', on='tconst')
     del ratings
     names = read_tsv('https://datasets.imdbws.com/title.basics.tsv.gz', ['tconst', 'primaryTitle'])
+    names = names.drop_duplicates(subset='tconst')
     eps = eps.merge(names, how='left', on='tconst')
 
     for i, ep in enumerate(eps.itertuples()):
         epno = 'S'+str(ep.seasonNumber).zfill(2)+'E'+str(ep.episodeNumber).zfill(2)+' - '
-        db.session.add(Episode(ep.tconst, ep.parentTconst, epno+ep.primaryTitle, ep.seasonNumber, ep.episodeNumber, int(ep.averageRating*10), ep.numVotes))
+        db.session.add(Episode(ep.tconst, ep.parentTconst, epno+str(ep.primaryTitle), ep.seasonNumber, ep.episodeNumber, int(ep.averageRating*10), ep.numVotes))
 
     db.session.commit()
 
