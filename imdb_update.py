@@ -33,7 +33,7 @@ if (weekday == 1):
 
     for i, ep in enumerate(eps.itertuples()):
         epno = 'S'+str(ep.seasonNumber).zfill(2)+'E'+str(ep.episodeNumber).zfill(2)+' - '
-        db.session.add(Episode(ep.tconst, ep.parentTconst, epno+str(ep.primaryTitle), ep.seasonNumber, ep.episodeNumber, int(ep.averageRating*10), ep.numVotes))
+        db.session.add(Episode(ep.tconst, ep.parentTconst, epno+str(ep.primaryTitle), ep.seasonNumber, ep.episodeNumber, int(ep.averageRating*10), int(ep.numVotes)))
 
     db.session.commit()
 
