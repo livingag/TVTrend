@@ -4,17 +4,45 @@
         <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
         <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
         <style type="text/css">
             body > .ui.container {
-                padding-top: 5em;
+                padding-top: 3em;
             }
-            body {
+            body, h1 {
+                font-family: 'IBM Plex Mono', monospace;
                 color: whitesmoke;
-                background-color: #303030;
+                background-color: #202124;
+            }
+            .ui.search {
+                font-family: 'IBM Plex Mono', monospace;
             }
             a {
                 color: cornflowerblue;
             }
+            .ui.form input:not([type]),
+            .ui.form input[type=date],
+            .ui.form input[type=datetime-local],
+            .ui.form input[type=email],
+            .ui.form input[type=file],
+            .ui.form input[type=number],
+            .ui.form input[type=password],
+            .ui.form input[type=search],
+            .ui.form input[type=tel],
+            .ui.form input[type=text],
+            .ui.form input[type=time],
+            .ui.form input[type=url] {
+                font-family:'IBM Plex Mono', monospace;
+            }
+            .ui.search>.results .result .title {
+                font-family:'IBM Plex Mono', monospace;
+            }
+            @media only screen and (min-width: 1200px){
+                .ui.container {
+                  width: 1500px;
+                }
         </style>
     {% block head %}
     {% endblock %}
