@@ -25,25 +25,21 @@ names = read_tsv('title.basics.tsv.gz', ['tconst', 'primaryTitle'])
 names = names.drop_duplicates(subset='tconst')
 eps = eps.merge(names, how='left', on='tconst')
 
-for i, ep in enumerate(eps.itertuples()):
-    epno = 'S'+str(ep.seasonNumber).zfill(2)+'E'+str(ep.episodeNumber).zfill(2)+' - '
-    db.session.add(Episode(ep.tconst, ep.parentTconst, epno+str(ep.primaryTitle), ep.seasonNumber, ep.episodeNumber, int(ep.averageRating*10), int(ep.numVotes)))
+episodes = [Episode(*ep.values) for _, ep in eps.iterrows()]
 
-db.session.commit()
+db.session.bulk_save_objects(episodes)
+db.session.flush()
 
 shows = eps[['parentTconst']].drop_duplicates()
 shows = shows.merge(names, left_on='parentTconst', right_on='tconst')
+shows = shows.drop('tconst', axis=1)
 
-for show in shows.itertuples():
-    show = Show(show.parentTconst, show.primaryTitle)
-    db.session.add(show)
+shows = [Show(*show.values) for _, show in shows.iterrows()]
+db.session.bulk_save_objects(shows)
 
-db.session.commit()
+db.session.flush()
 
 for show in Show.query.all():
-    ratings = [e.rating for e in show.episodes]
-    show.average = int(np.mean(ratings))
-    show.std = np.round(np.std(ratings) / 10, 2)
-    show.votes = sum([e.votes for e in show.episodes])
+    show.update_stats()
 
 db.session.commit()

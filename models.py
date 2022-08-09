@@ -1,4 +1,5 @@
 from tvtrend import db
+import numpy as np
 
 
 class Show(db.Model):
@@ -8,7 +9,7 @@ class Show(db.Model):
     votes = db.Column(db.Integer())
     average = db.Column(db.Integer())
     std = db.Column(db.Float())
-    episodes = db.relationship('Episode', backref='show', lazy=True)
+    episodes = db.relationship("Episode", backref="show", lazy=False)
 
     def __init__(self, imdbid, name):
         self.imdbid = imdbid
@@ -16,6 +17,12 @@ class Show(db.Model):
 
     def sort_episodes(self):
         self.episodes.sort(key=lambda x: x.name)
+
+    def update_stats(self):
+        ratings = np.array([e.rating for e in self.episodes])
+        self.average = int(ratings.mean())
+        self.std = np.round(ratings.std() / 10, 2)
+        self.votes = sum([e.votes for e in self.episodes])
 
 
 class Episode(db.Model):
@@ -27,16 +34,18 @@ class Episode(db.Model):
     rating = db.Column(db.Integer())
     votes = db.Column(db.Integer())
     imdbid = db.Column(db.String(9))
-    showid = db.Column(db.String(9), db.ForeignKey('shows.imdbid'))
+    showid = db.Column(db.String(9), db.ForeignKey("shows.imdbid"))
 
-    def __init__(self, imdbid, showid, name, season, number, rating, votes):
-        self.name = name
+    def __init__(self, imdbid, showid, season, number, rating, votes, name):
         self.season = season
         self.number = number
-        self.rating = rating
+        self.rating = int(rating*10)
         self.imdbid = imdbid
         self.showid = showid
-        self.votes = votes
+        self.votes = int(votes)
+        self.name = (
+            "S" + str(season).zfill(2) + "E" + str(number).zfill(2) + " - " + name
+        )
 
     def __repr__(self):
         return self.name
