@@ -3,3 +3,5 @@ config.py
 .vscode
 *.db
 *env/
+.DS_Store
+*.tsv.gz
