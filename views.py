@@ -1,21 +1,27 @@
-from flask import render_template, request, redirect, url_for, jsonify, flash
+from flask import render_template, request
 from tvtrend import app
+from sqlalchemy.orm import lazyload
 import json, requests, hmac, hashlib
 import numpy as np
-from datetime import datetime
 from models import *
 
 
 @app.route("/")
 def home():
-    shownames = [{"title": x.name, "id": x.imdbid} for x in Show.query.all()]
+    shownames = [
+        {"title": x[0], "id": x[1]}
+        for x in Show.query.with_entities(Show.name, Show.imdbid).all()
+    ]
     return render_template("home.html", shownames=shownames)
 
 
 @app.route("/popular")
 def popular():
     return render_template(
-        "popular.html", shows=Show.query.order_by(Show.votes.desc()).all()[:250]
+        "popular.html",
+        shows=Show.query.options(lazyload("episodes"))
+        .order_by(Show.votes.desc())
+        .all()[:250],
     )
 
 
